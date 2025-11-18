@@ -1,20 +1,28 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { Assignment4Stack } from '../lib/assignment4-stack';
+import { StorageStack } from '../lib/storage-stack';
+import { AppStack } from '../lib/app-stack';
+import { DriverStack } from '../lib/driver-stack';
 
 const app = new cdk.App();
-new Assignment4Stack(app, 'Assignment4Stack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+// 1. storage (bucket + table + SNS + SQS)
+const storage = new StorageStack(app, 'StorageStack', {
+  env: { region: 'us-east-1' },
+});
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+// 2. app logic (size-tracking, plotting, logging, cleaner)
+const appLogic = new AppStack(app, 'AppStack', {
+  env: { region: 'us-east-1' },
+  bucket: storage.bucket,
+  table: storage.table,
+  sizeTrackingQueue: storage.sizeTrackingQueue,
+  loggingQueue: storage.loggingQueue,
+});
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+// 3. driver (traffic generator)
+new DriverStack(app, 'DriverStack', {
+  env: { region: 'us-east-1' },
+  bucket: storage.bucket,
+  plottingApiUrl: appLogic.plottingApiUrl,
 });
