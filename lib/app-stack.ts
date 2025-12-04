@@ -46,7 +46,7 @@ export class AppStack extends cdk.Stack {
     });
 
     // Permissions
-    bucket.grantRead(sizeTrackingFn); // list objects to compute totals
+    bucket.grantRead(sizeTrackingFn);  
     table.grantWriteData(sizeTrackingFn);
 
     sizeTrackingFn.addEventSource(
@@ -56,7 +56,7 @@ export class AppStack extends cdk.Stack {
     );
 
     //
-    // 2) Plotting Lambda using API Gateway (unchanged)
+    // 2) Plotting Lambda using API Gateway  
     //
     const plottingFn = new lambda.Function(this, 'PlottingFn', {
       runtime: lambda.Runtime.PYTHON_3_12,
@@ -65,7 +65,7 @@ export class AppStack extends cdk.Stack {
       environment: {
         BUCKET_NAME: bucket.bucketName,
         TABLE_NAME: table.tableName,
-        WINDOW_SECONDS: '60', // feel free to tweak
+        WINDOW_SECONDS: '30',  
       },
       timeout: cdk.Duration.seconds(30),
       layers: [
@@ -99,7 +99,7 @@ export class AppStack extends cdk.Stack {
       handler: 'logging_lambda.lambda_handler',
       code: lambda.Code.fromAsset(lambdaCodePath),
       timeout: cdk.Duration.seconds(30),
-      // no special env needed; it uses AWS_LAMBDA_LOG_GROUP_NAME
+       
     });
 
     loggingFn.addEventSource(
@@ -130,7 +130,7 @@ export class AppStack extends cdk.Stack {
 
     const totalSizeMetric = metricFilter.metric({
       statistic: 'sum',
-      period: cdk.Duration.seconds(60), // adjust for demo as needed
+      period: cdk.Duration.seconds(30), 
     });
 
     //

@@ -21,7 +21,6 @@ export class StorageStack extends cdk.Stack {
     this.bucket = new s3.Bucket(this, 'TestBucket', {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      // we no longer need EventBridge; S3 will send events to SNS instead
       eventBridgeEnabled: false,
     });
 
@@ -45,11 +44,11 @@ export class StorageStack extends cdk.Stack {
 
     // SQS queues for consumers
     this.sizeTrackingQueue = new sqs.Queue(this, 'SizeTrackingQueue', {
-      visibilityTimeout: cdk.Duration.seconds(60),
+      visibilityTimeout: cdk.Duration.seconds(30),
     });
 
     this.loggingQueue = new sqs.Queue(this, 'LoggingQueue', {
-      visibilityTimeout: cdk.Duration.seconds(60),
+      visibilityTimeout: cdk.Duration.seconds(30),
     });
 
     // Subscriptions: SNS -> SQS
@@ -61,7 +60,6 @@ export class StorageStack extends cdk.Stack {
     );
 
     // S3 notifications -> SNS
-    // (you can scope events with prefix filters if you like)
     this.bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED_PUT,
       new s3n.SnsDestination(s3EventsTopic),

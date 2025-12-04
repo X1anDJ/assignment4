@@ -20,7 +20,7 @@ const appLogic = new AppStack(app, 'AppStack', {
   loggingQueue: storage.loggingQueue,
 });
 
-// 3. driver (traffic generator)
+// 3. driver  
 new DriverStack(app, 'DriverStack', {
   env: { region: 'us-east-1' },
   bucket: storage.bucket,

@@ -12,9 +12,7 @@ LOG_GROUP_NAME = os.environ.get("AWS_LAMBDA_LOG_GROUP_NAME")
 
 def _find_last_size_from_logs(object_name: str) -> int:
     """
-    For delete events, S3 does not give us size.
-    We search this log group for the last log for this object_name
-    and use its (absolute) size_delta as the size.
+    Use size_delta as the size.
     """
     if not LOG_GROUP_NAME:
         return 0
@@ -25,14 +23,14 @@ def _find_last_size_from_logs(object_name: str) -> int:
     resp = logs_client.filter_log_events(
         logGroupName=LOG_GROUP_NAME,
         filterPattern=pattern,
-        limit=5,  # small for this assignment
+        limit=5,  
     )
 
     events = resp.get("events", [])
     if not events:
         return 0
 
-    # Take the last event (latest)
+    # Take the last event 
     for ev in reversed(events):
         try:
             msg = json.loads(ev["message"])
@@ -44,13 +42,19 @@ def _find_last_size_from_logs(object_name: str) -> int:
     return 0
 
 
-def lambda_handler(event, context):
-    # event from SQS → SNS → S3
+def lambda_handler(event, context): 
+    """
+    event from SQS → SNS → S3
+    Triggered by SQS.
+    Each SQS record body is an SNS message
+    Message field is the S3 event JSON.
+    """
+    
     for record in event.get("Records", []):
         body = json.loads(record["body"])
         sns_msg = json.loads(body["Message"])
         for s3rec in sns_msg.get("Records", []):
-            event_name = s3rec["eventName"]  # e.g. ObjectCreated:Put
+            event_name = s3rec["eventName"]   
             bucket_name = s3rec["s3"]["bucket"]["name"]
             key_enc = s3rec["s3"]["object"]["key"]
             key = unquote_plus(key_enc)

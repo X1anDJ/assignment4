@@ -15,9 +15,11 @@ def lambda_handler(event, context):
 
     if not contents:
         return {"status": "empty"}
-
-    # Optionally ignore the plot object created by plotting lambda
-    candidates = [obj for obj in contents if obj["Key"] != "plot"]
+ 
+    candidates = [
+    obj for obj in contents
+    if not obj["Key"].startswith("plot")
+    ]
     if not candidates:
         candidates = contents
 
